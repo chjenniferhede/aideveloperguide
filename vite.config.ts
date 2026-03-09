@@ -9,7 +9,7 @@ export default defineConfig({
   base: '/aideveloperguide/',
   resolve: {
     alias: {
-      '@': '/src'
+      '@': './src'
     }
   },
   plugins: [
