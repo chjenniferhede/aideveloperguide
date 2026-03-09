@@ -1,0 +1,160 @@
+name: Check for Broken Links
+
+on:
+  schedule:
+    # Run every Sunday at midnight UTC
+    - cron: '0 0 * * 0'
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Extract and check links from MDX files
+        id: check
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const https = require('https');
+          const http = require('http');
+
+          // Recursively find all MDX files
+          function findMdxFiles(dir, fileList = []) {
+            const files = fs.readdirSync(dir);
+            files.forEach(file => {
+              const filePath = path.join(dir, file);
+              const stat = fs.statSync(filePath);
+              if (stat.isDirectory()) {
+                findMdxFiles(filePath, fileList);
+              } else if (file.endsWith('.mdx')) {
+                fileList.push(filePath);
+              }
+            });
+            return fileList;
+          }
+
+          const mdxFiles = findMdxFiles('src/content');
+          const urlRegex = /https?:\/\/[^\s\)\]\}]+/g;
+          const urls = new Map(); // url -> [files]
+
+          mdxFiles.forEach(file => {
+            const content = fs.readFileSync(file, 'utf-8');
+            const matches = content.match(urlRegex) || [];
+            matches.forEach(url => {
+              const cleanUrl = url.replace(/[)\]\}.,;:!?]+$/, '');
+              if (!urls.has(cleanUrl)) {
+                urls.set(cleanUrl, []);
+              }
+              urls.get(cleanUrl).push(file.replace('src/content/', ''));
+            });
+          });
+
+          console.log(`Found ${mdxFiles.length} MDX files with ${urls.size} unique URLs\n`);
+
+          // Check each URL
+          const brokenLinks = [];
+          let checked = 0;
+
+          const checkUrl = (url) => {
+            return new Promise((resolve) => {
+              const isHttps = url.startsWith('https');
+              const protocol = isHttps ? https : http;
+              const timeout = setTimeout(() => {
+                resolve({ url, status: 'TIMEOUT', files: urls.get(url) });
+              }, 5000);
+
+              const options = { timeout: 5000 };
+              protocol.head(url, options, (res) => {
+                clearTimeout(timeout);
+                if (res.statusCode >= 400) {
+                  resolve({ url, status: res.statusCode, files: urls.get(url) });
+                } else {
+                  resolve(null);
+                }
+              }).on('error', (err) => {
+                clearTimeout(timeout);
+                resolve({ url, status: 'ERROR', error: err.code, files: urls.get(url) });
+              });
+            });
+          };
+
+          (async () => {
+            for (const url of urls.keys()) {
+              const result = await checkUrl(url);
+              if (result) {
+                brokenLinks.push(result);
+              }
+              checked++;
+              process.stdout.write(`Checked ${checked}/${urls.size}\r`);
+            }
+
+            console.log(`\n\n✅ Scan complete! Checked ${checked} links.`);
+            console.log(`Found ${brokenLinks.length} broken links.\n`);
+
+            if (brokenLinks.length > 0) {
+              console.log('BROKEN LINKS FOUND:');
+              brokenLinks.forEach(link => {
+                console.log(`\n❌ ${link.url}`);
+                console.log(`   Status: ${link.status || link.error}`);
+                console.log(`   Found in: ${link.files.join(', ')}`);
+              });
+              
+              fs.writeFileSync('broken-links.json', JSON.stringify(brokenLinks, null, 2));
+              process.exit(1);
+            } else {
+              console.log('✅ All external links are working!');
+              process.exit(0);
+            }
+          })();
+          EOF
+
+      - name: Check if broken links exist
+        id: find-broken
+        if: failure()
+        run: |
+          echo "broken_found=true" >> $GITHUB_OUTPUT
+          echo "### 🔗 Broken Links Detected" > pr-message.md
+          echo "" >> pr-message.md
+          echo "The link checker found broken external links in your MDX files:" >> pr-message.md
+          echo "" >> pr-message.md
+          node << 'EOF'
+          const fs = require('fs');
+          const links = JSON.parse(fs.readFileSync('broken-links.json', 'utf-8'));
+          links.forEach(link => {
+            console.log(`\n**❌ ${link.url}**`);
+            console.log(`- Status: ${link.status || link.error}`);
+            console.log(`- Found in: ${link.files.join(', ')}`);
+          });
+          EOF >> pr-message.md
+          echo "" >> pr-message.md
+          echo "## How to Fix" >> pr-message.md
+          echo "1. Open the MDX files listed above (in \`src/content/\`)" >> pr-message.md
+          echo "2. Update or remove the broken URLs" >> pr-message.md
+          echo "3. Test locally with \`npm run dev\`" >> pr-message.md
+          echo "4. Commit and push your fixes" >> pr-message.md
+
+      - name: Create Pull Request with broken links
+        if: steps.find-broken.outputs.broken_found == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: 'chore: update broken links detected by link checker'
+          title: '🔗 Broken Links Detected - Review Required'
+          body-path: pr-message.md
+          branch: broken-links-report
+          delete-branch: true
+          labels: 'broken-links,automated'
