@@ -49,14 +49,22 @@ jobs:
           }
 
           const mdxFiles = findMdxFiles('src/content');
-          const urlRegex = /https?:\/\/[^\s\)\]\}]+/g;
+          const urlRegex = /https?:\/\/[^\s\)\]\}"'>]+/g;
           const urls = new Map(); // url -> [files]
+
+          // Skip placeholder/template URLs
+          const skipPatterns = [
+            /YOURUSERNAME/,
+            /example\.com/,
+            /placeholder/
+          ];
 
           mdxFiles.forEach(file => {
             const content = fs.readFileSync(file, 'utf-8');
             const matches = content.match(urlRegex) || [];
             matches.forEach(url => {
-              const cleanUrl = url.replace(/[)\]\}.,;:!?]+$/, '');
+              const cleanUrl = url.replace(/[)\]\}.,;:!?"'>]+$/, '');
+              if (skipPatterns.some(p => p.test(cleanUrl))) return;
               if (!urls.has(cleanUrl)) {
                 urls.set(cleanUrl, []);
               }
@@ -70,36 +78,54 @@ jobs:
           const brokenLinks = [];
           let checked = 0;
 
-          const checkUrl = (url) => {
+          const makeRequest = (url, method) => {
             return new Promise((resolve) => {
               const isHttps = url.startsWith('https');
               const protocol = isHttps ? https : http;
-              const timeout = setTimeout(() => {
+              const timer = setTimeout(() => {
                 resolve({ url, status: 'TIMEOUT', files: urls.get(url) });
-              }, 5000);
+              }, 10000);
 
               const parsedUrl = new URL(url);
               const options = {
                 hostname: parsedUrl.hostname,
                 path: parsedUrl.pathname + parsedUrl.search,
-                method: 'HEAD',
-                timeout: 5000,
-                headers: { 'User-Agent': 'Mozilla/5.0 LinkChecker' }
+                method: method,
+                timeout: 10000,
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
               };
               const req = protocol.request(options, (res) => {
-                clearTimeout(timeout);
-                if (res.statusCode >= 400) {
-                  resolve({ url, status: res.statusCode, files: urls.get(url) });
-                } else {
-                  resolve(null);
-                }
+                clearTimeout(timer);
+                // Consume body for GET requests
+                res.resume();
+                resolve({ statusCode: res.statusCode });
               });
               req.on('error', (err) => {
-                clearTimeout(timeout);
-                resolve({ url, status: 'ERROR', error: err.code, files: urls.get(url) });
+                clearTimeout(timer);
+                resolve({ statusCode: -1, error: err.code });
               });
               req.end();
             });
+          };
+
+          const checkUrl = async (url) => {
+            // First try HEAD
+            let result = await makeRequest(url, 'HEAD');
+
+            // If HEAD returns 403, 405, or 503 — retry with GET (some sites block HEAD)
+            if ([403, 405, 503].includes(result.statusCode)) {
+              result = await makeRequest(url, 'GET');
+            }
+
+            if (result.statusCode === -1) {
+              return { url, status: 'ERROR', error: result.error, files: urls.get(url) };
+            }
+            if (result.statusCode === 'TIMEOUT' || result.statusCode >= 400) {
+              return { url, status: result.statusCode, files: urls.get(url) };
+            }
+            return null;
           };
 
           (async () => {
