@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+      issues: write
 
     steps:
       - name: Checkout repository
@@ -184,13 +184,12 @@ jobs:
           echo "3. Test locally with \`npm run dev\`" >> pr-message.md
           echo "4. Commit and push your fixes" >> pr-message.md
 
-      - name: Create Pull Request with broken links
-        if: steps.find-broken.outputs.broken_found == 'true'
-        uses: peter-evans/create-pull-request@v5
-        with:
-          commit-message: 'chore: update broken links detected by link checker'
-          title: '🔗 Broken Links Detected - Review Required'
-          body-path: pr-message.md
-          branch: broken-links-report
-          delete-branch: true
-          labels: 'broken-links,automated'
+      - name: Create GitHub Issue for broken links
+        if: failure() && steps.find-broken.outputs.broken_found == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "🔗 Broken Links Detected - Review Required" \
+            --body-file pr-message.md \
+            --label "broken-links"
