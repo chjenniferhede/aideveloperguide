@@ -4,17 +4,22 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -n vite,server -c cyan,green \"vite\" \"tsx watch server/index.ts\"",
+    "dev:frontend": "vite",
+    "dev:server": "tsx watch server/index.ts",
     "build": "tsc && vite build",
+    "build:server": "tsc --project server/tsconfig.json",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@hono/node-server": "^1.13.7",
     "@mdx-js/react": "^3.1.0",
     "@mdx-js/rollup": "^2.3.0",
     "@tailwindcss/typography": "^0.5.16",
+    "hono": "^4.7.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.15.0",
@@ -23,6 +28,9 @@
     "remark-mdx-frontmatter": "^1.1.1"
   },
   "devDependencies": {
+    "@types/node": "^18.0.0",
+    "concurrently": "^9.1.2",
+    "tsx": "^4.19.3",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
