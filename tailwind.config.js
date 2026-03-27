@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Roboto Slab"', 'Georgia', 'serif'],
+      },
       colors: {
         google: {
           blue: '#4285f4',

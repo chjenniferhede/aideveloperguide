@@ -1,0 +1,142 @@
+{
+  "keywords": [
+    {
+      "term": "MCP",
+      "fullName": "Model Context Protocol",
+      "explanation": "A standardized open protocol created by Anthropic that lets AI agents connect to external tools, APIs, and data sources in a uniform way — like a USB standard for plugging tools into AI models.",
+      "origin": "Anthropic (now Linux Foundation)"
+    },
+    {
+      "term": "A2A",
+      "fullName": "Agent-to-Agent Protocol",
+      "explanation": "A Google-introduced protocol that lets autonomous AI agents discover and communicate with each other by advertising their capabilities via 'Agent Cards' in JSON format. While MCP connects an agent to tools, A2A connects agents to other agents.",
+      "origin": "Google"
+    },
+    {
+      "term": "ACP",
+      "fullName": "Agent Communication Protocol",
+      "explanation": "An IBM/Linux Foundation open standard for multi-agent coordination — handling how agents delegate tasks, maintain shared context, and report activities for auditing.",
+      "origin": "IBM / Linux Foundation"
+    },
+    {
+      "term": "Agent Cards",
+      "fullName": "Agent Cards",
+      "explanation": "JSON descriptors used in Google's A2A protocol that an AI agent publishes to advertise its capabilities to other agents — like a business card saying 'I can search the web, query databases, and write code.'",
+      "origin": "Google (A2A)"
+    },
+    {
+      "term": "Agentic Workflows",
+      "fullName": "Agentic Workflows / Agentic Loop",
+      "explanation": "A design pattern where an AI model is placed in a think → act → observe feedback loop, repeatedly taking actions and deciding next steps rather than answering a single prompt.",
+      "origin": "Industry-wide"
+    },
+    {
+      "term": "ReAct",
+      "fullName": "Reason + Act",
+      "explanation": "A prompting and architecture pattern where the model interleaves reasoning steps ('I should look up X') with action steps ('calling tool: web_search') before producing a final answer.",
+      "origin": "Academic research, widely adopted industry-wide"
+    },
+    {
+      "term": "Multiagent Orchestration",
+      "fullName": "Multiagent Orchestration",
+      "explanation": "The engineering discipline of coordinating multiple specialized AI agents — assigning tasks, managing dependencies, merging outputs, and handling failures so they work as a coherent system.",
+      "origin": "Industry-wide"
+    },
+    {
+      "term": "RLAIF",
+      "fullName": "Reinforcement Learning from AI Feedback",
+      "explanation": "A variant of RLHF where another AI model (instead of humans) provides preference labels for training. Dramatically cheaper to scale than human feedback.",
+      "origin": "Anthropic, Google DeepMind"
+    },
+    {
+      "term": "DPO",
+      "fullName": "Direct Preference Optimization",
+      "explanation": "An alignment training technique that replaces the separate reward model step in RLHF by directly training on preference pairs (chosen vs. rejected responses) in a single pass.",
+      "origin": "Academic research, widely adopted 2024–2025"
+    },
+    {
+      "term": "PEFT",
+      "fullName": "Parameter-Efficient Fine-Tuning",
+      "explanation": "An umbrella term for methods that adapt a large pretrained model to a new task by training only a tiny fraction of its parameters, leaving the rest frozen. LoRA is the most common PEFT method.",
+      "origin": "Academic research, industry-standard"
+    },
+    {
+      "term": "LoRA",
+      "fullName": "Low-Rank Adaptation",
+      "explanation": "The dominant PEFT technique — small trainable 'delta' matrices are injected into an existing model's layers, reducing trainable parameters by 90%+ while achieving near-full fine-tune quality. QLoRA is the quantized, memory-reduced variant.",
+      "origin": "Academic research, industry-standard"
+    },
+    {
+      "term": "Constitutional AI",
+      "fullName": "Constitutional AI",
+      "explanation": "Anthropic's alignment method that trains a model using a written 'constitution' — a set of principles the model uses to critique and revise its own outputs during training, rather than relying purely on human preference labels.",
+      "origin": "Anthropic"
+    },
+    {
+      "term": "Mechanistic Interpretability",
+      "fullName": "Mechanistic Interpretability",
+      "explanation": "A research discipline that attempts to reverse-engineer how a neural network internally represents and processes information — tracing specific model behaviors back to specific weights, circuits, or features.",
+      "origin": "Academic ML safety, heavily developed at Anthropic"
+    },
+    {
+      "term": "Test-Time Compute",
+      "fullName": "Test-Time Compute / Inference-Time Scaling",
+      "explanation": "The practice of giving a model more computation during inference (at answer time) — not just training — to improve answer quality. OpenAI's o1/o3 reasoning models are the primary example.",
+      "origin": "OpenAI o-series, now industry-wide"
+    },
+    {
+      "term": "Thinking Tokens",
+      "fullName": "Thinking Tokens / Extended Thinking",
+      "explanation": "The internal 'scratchpad' tokens a reasoning model generates while working through a problem before producing a visible answer. These hidden tokens represent the model's chain-of-thought deliberation.",
+      "origin": "OpenAI / Anthropic"
+    },
+    {
+      "term": "Speculative Decoding",
+      "fullName": "Speculative Decoding",
+      "explanation": "An inference optimization where a small 'draft' model rapidly generates candidate tokens and a larger model verifies them in parallel, significantly speeding up output generation.",
+      "origin": "Google, Meta, inference infra teams"
+    },
+    {
+      "term": "KV Cache",
+      "fullName": "Key-Value Cache",
+      "explanation": "A memory optimization that stores intermediate attention computation results across a conversation so the model doesn't recompute them every turn. Managing KV cache efficiently is critical for teams running large models at scale.",
+      "origin": "Infrastructure term, all major AI labs and cloud providers"
+    },
+    {
+      "term": "Evals",
+      "fullName": "Evaluation Harnesses",
+      "explanation": "Automated test suites used to systematically measure model capabilities, safety behaviors, and regressions across thousands of prompts. Building and maintaining evals is now a distinct engineering role at most AI companies.",
+      "origin": "Industry-wide"
+    },
+    {
+      "term": "Red Teaming",
+      "fullName": "Red Teaming",
+      "explanation": "Adversarially probing an AI model before release to discover failure modes, unsafe outputs, or exploitable behaviors. Originally a military/security term, now a formal job function at major AI labs.",
+      "origin": "Industry-wide (formalized in AI context 2023–2025)"
+    },
+    {
+      "term": "Guardrails",
+      "fullName": "AI Guardrails",
+      "explanation": "Runtime safety controls layered around a deployed AI model that filter inputs and outputs — blocking harmful content, preventing prompt injection, redacting PII, and enforcing topic restrictions.",
+      "origin": "AWS Bedrock (named product), now industry-wide"
+    },
+    {
+      "term": "Grounding",
+      "fullName": "Grounding",
+      "explanation": "Connecting a model's responses to verified external facts or documents so it doesn't generate unsupported claims. A 'grounded' response cites a retrieved source; an 'ungrounded' one relies on model memory alone.",
+      "origin": "Google Cloud, Microsoft Azure AI"
+    },
+    {
+      "term": "Vibe Coding",
+      "fullName": "Vibe Coding",
+      "explanation": "AI-assisted software development where the developer describes intent in natural language and lets an AI coding agent write, test, and iterate on the code autonomously. Coined by Andrej Karpathy in February 2025.",
+      "origin": "Coined by Andrej Karpathy, widely adopted in industry discourse"
+    },
+    {
+      "term": "Context Engineering",
+      "fullName": "Context Engineering",
+      "explanation": "The emerging discipline of deliberately designing and managing what information gets placed in an AI model's context window — curating memory, tool outputs, conversation history, and retrieved documents to optimize accuracy and efficiency.",
+      "origin": "Industry-wide (emerged late 2025)"
+    }
+  ]
+}

@@ -10,9 +10,9 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-slate-200 shadow-sm border-b border-slate-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex justify-between h-11">
             <div className="flex items-center space-x-4">
               {/* Johns Hopkins Logo */}
               <div className="flex items-center">
@@ -37,66 +37,28 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
               </div>
               <Link to="/" className="text-xl font-bold text-gray-900">
-                Life Design Lab AI Developer Guide
+                AI Developer Guide
               </Link>
             </div>
             <div className="flex items-center space-x-8">
-              <Link
-                to="/google"
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-                  location.pathname.startsWith('/google')
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-700 hover:text-blue-500'
-                }`}
-              >
-                <img 
-                  src="https://www.google.com/favicon.ico" 
-                  alt="Google" 
-                  className="h-4 w-4"
-                />
-                <span>Google</span>
-              </Link>
-              <Link
-                to="/amazon"
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-                  location.pathname.startsWith('/amazon')
-                    ? 'bg-orange-500 text-white'
-                    : 'text-gray-700 hover:text-orange-500'
-                }`}
-              >
-                <img 
-                  src="https://www.amazon.com/favicon.ico" 
-                  alt="Amazon" 
-                  className="h-4 w-4"
-                />
-                <span>Amazon</span>
-              </Link>
-              <Link
-                to="/microsoft"
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-                  location.pathname.startsWith('/microsoft')
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-700 hover:text-blue-600'
-                }`}
-              >
-                <img 
-                  src="https://www.microsoft.com/favicon.ico" 
-                  alt="Microsoft" 
-                  className="h-4 w-4"
-                />
-                <span>Microsoft</span>
-              </Link>
-              <Link
-                to="/resources"
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-                  location.pathname.startsWith('/resources')
-                    ? 'bg-green-500 text-white'
-                    : 'text-gray-700 hover:text-green-500'
-                }`}
-              >
-                <span className="text-lg">📚</span>
-                <span>Resources</span>
-              </Link>
+              {[
+                { label: 'All Tech Stacks', to: '/stacks' },
+                { label: 'Resume/LinkedIn', to: '/resume' },
+                { label: 'Projects', to: '/projects' },
+                { label: 'Resource Index', to: '/resources' },
+              ].map(({ label, to }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`text-sm font-medium ${
+                    location.pathname.startsWith(to)
+                      ? 'text-gray-900'
+                      : 'text-gray-700 hover:text-gray-900'
+                  }`}
+                >
+                  {label}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
